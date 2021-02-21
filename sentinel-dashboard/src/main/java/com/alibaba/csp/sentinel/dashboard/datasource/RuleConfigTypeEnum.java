@@ -3,6 +3,8 @@ package com.alibaba.csp.sentinel.dashboard.datasource;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.GatewayFlowRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.GatewayParamFlowItemEntity;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.*;
+import com.alibaba.csp.sentinel.dashboard.rule.nacos.ParamFlowRulePO;
+import com.alibaba.csp.sentinel.slots.block.flow.param.ParamFlowRule;
 
 /**
  * keys of rule seetings stored in config center
@@ -15,7 +17,7 @@ import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.*;
 public enum RuleConfigTypeEnum {
 
     FLOW("sentinel-flow-rules", FlowRuleEntity.class),
-    PARAM_FLOW("sentinel-param-rules", ParamFlowRuleEntity.class),
+    PARAM_FLOW("sentinel-param-rules", ParamFlowRulePO.class),
     AUTHORITY("sentinel-authority-rules", AuthorityRuleEntity.class),
     DEGRADE("sentinel-degrade-rules", DegradeRuleEntity.class),
     SYSTEM("sentinel-system-rules", SystemRuleEntity.class),

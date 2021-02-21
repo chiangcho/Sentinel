@@ -2,11 +2,14 @@ package com.alibaba.csp.sentinel.dashboard.rule.nacos;
 
 import com.alibaba.csp.sentinel.dashboard.datasource.RuleConfigTypeEnum;
 import com.alibaba.csp.sentinel.dashboard.datasource.ds.nacos.NacosProperties;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.ParamFlowRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.rule.AbstractpersistentRuleApiClient;
+import com.alibaba.csp.sentinel.slots.block.flow.param.ParamFlowRule;
 import com.alibaba.csp.sentinel.util.AssertUtil;
 import com.alibaba.csp.sentinel.util.StringUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.nacos.api.config.ConfigService;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -38,7 +41,18 @@ public class NacosApiClient<T> extends AbstractpersistentRuleApiClient<T> {
         if (StringUtil.isEmpty(rulesJson)) {
             return (List<T>) new ArrayList();
         }
-        return JSON.parseArray(rulesJson, configType.getClazz());
+        List list = JSON.parseArray(rulesJson, configType.getClazz());
+
+        //如果是param-flow,则处理方式与其他类型不同，需要将ParamFlowRulePO转换为Entity
+        if(configType.equals(RuleConfigTypeEnum.PARAM_FLOW)) {
+            List<ParamFlowRuleEntity> paramFlowRuleEntitys = new ArrayList<>();
+            for(Object obj :list) {
+                ParamFlowRulePO po = (ParamFlowRulePO) obj;
+                paramFlowRuleEntitys.add(po.toEntity());
+            }
+            list = paramFlowRuleEntitys;
+        }
+        return list;
     }
 
     @Override
@@ -49,6 +63,15 @@ public class NacosApiClient<T> extends AbstractpersistentRuleApiClient<T> {
         }
         String ruleName = this.getRuleConfigId(app, configType);
         String groupId = nacosProperties.getGroupId();
+        //如果是param-flow,则处理方式与其他类型不同，需要将Entity转换为ParamFlowRulePO
+        if(configType.equals(RuleConfigTypeEnum.PARAM_FLOW)) {
+            List<ParamFlowRule> paramFlowRules = new ArrayList<>();
+            for (T rule :rules) {
+                ParamFlowRulePO po = new ParamFlowRulePO((ParamFlowRuleEntity) rule);
+                paramFlowRules.add(po);
+            }
+            rules = (List<T>) paramFlowRules;
+        }
         String rulesJson = JSON.toJSONString(rules,true);
         configService.publishConfig(ruleName, groupId, rulesJson);
     }
